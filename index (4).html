@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Froject — Просто работающая почта</title>
+
+  <!-- Google Fonts Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: '#3D81E3',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- React, ReactDOM, Babel -->
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+
+  <style>
+    html, body {
+      font-family: 'Inter', system-ui, sans-serif;
+      margin: 0; padding: 0;
+      background: #0c0c0c;
+      color: white;
+      overflow-x: hidden;
+    }
+    ::selection { background-color: rgba(61,129,227,0.3); }
+
+    .liquid-glass {
+      background: rgba(255,255,255,0.01);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      box-shadow: inset 0 1px 1px rgba(255,255,255,0.1);
+      position: relative; overflow: hidden;
+    }
+    .liquid-glass::before {
+      content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1.4px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.15) 20%, rgba(255,255,255,0) 40%, rgba(255,255,255,0) 60%, rgba(255,255,255,0.15) 80%, rgba(255,255,255,0.45) 100%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
+    }
+
+    @keyframes shiny { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+    .animate-shiny { animation: shiny 6s linear infinite; }
+
+    .fade-slide { opacity: 0; transform: translateY(10px); transition: opacity 0.6s ease-out, transform 0.6s ease-out; }
+    .fade-slide.visible { opacity: 1; transform: translateY(0); }
+
+    .c3-pricing-section { position: relative; padding: 40px 20px 80px; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
+    .c3-watermark-container { position: relative; width: 100%; max-width: 1100px; text-align: center; margin-top: 40px; z-index: 2; }
+    .c3-watermark-main { font-size: 9rem; font-weight: 800; line-height: 0.9; letter-spacing: -0.05em; filter: url(#c3-noise-pricing); display: flex; flex-direction: column; align-items: center; }
+    .c3-watermark-line-1 { color: #fff; }
+    .c3-watermark-line-2 { background: linear-gradient(to right, #091020 0%, #0B5125 25%, #A4F4C4 65%, #00ff88 100%); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
+    .c3-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; width: 100%; max-width: 1100px; margin-top: 60px; position: relative; z-index: 3; }
+    .c3-card { background: linear-gradient(135deg, rgba(0,0,0,0.7), rgba(0,0,0,0.4)); backdrop-filter: blur(14px) brightness(0.91); -webkit-backdrop-filter: blur(14px) brightness(0.91); border: 1px solid rgba(255,255,255,1); border-radius: 44px; padding: 50px 24px; min-height: 580px; display: flex; flex-direction: column; transition: all 0.6s cubic-bezier(.22,1,.36,1); overflow: hidden; position: relative; }
+    .c3-card::before { content: ''; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 50%); pointer-events: none; }
+    .c3-card:hover { background: rgba(15,15,15,0.6); border-color: rgba(34,211,238,0.7); transform: translateY(-12px) scale(1.01); }
+    .c3-card-pro { background: linear-gradient(135deg, rgba(0,0,0,0.85), rgba(0,0,0,0.55)); }
+    .c3-tier-small { font-size: 1.1rem; font-weight: 400; color: rgba(255,255,255,0.6); }
+    .c3-tier-large { font-size: 2.8rem; font-weight: 500; letter-spacing: -0.02em; color: #fff; margin-top: 8px; }
+    .c3-desc { font-size: 0.88rem; color: rgba(255,255,255,0.45); min-height: 3.2em; margin-top: 16px; margin-bottom: 40px; line-height: 1.5; }
+    .c3-list { list-style: none; padding: 0; margin: 0; }
+    .c3-list li { display: flex; align-items: flex-start; gap: 14px; font-size: 0.92rem; color: rgba(255,255,255,0.8); margin-bottom: 18px; line-height: 1.4; }
+    .c3-check { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.15); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .c3-btn { background: #fff; color: #000; padding: 10px 32px; border-radius: 100px; font-weight: 600; font-size: 0.88rem; margin-top: auto; border: none; cursor: pointer; align-self: center; transition: all 0.3s cubic-bezier(.22,1,.36,1); }
+    .c3-btn:hover { background: #f5f5f5; transform: scale(1.02); box-shadow: 0 8px 24px rgba(255,255,255,0.15); }
+    .c3-toggle-wrap { display: flex; align-items: center; justify-content: flex-end; gap: 12px; width: 100%; max-width: 1100px; margin-top: 32px; padding-right: 20px; }
+    .c3-toggle { width: 52px; height: 28px; background: #fff; border-radius: 100px; position: relative; cursor: pointer; border: none; transition: background 0.3s; padding: 0; }
+    .c3-toggle-knob { width: 20px; height: 20px; background: #000; border-radius: 50%; position: absolute; top: 4px; left: 4px; transition: all 0.3s; }
+    .c3-toggle.active { background: rgba(255,255,255,0.2); }
+    .c3-toggle.active .c3-toggle-knob { transform: translateX(24px); background: #fff; }
+
+    @media (max-width: 1024px) {
+      .c3-watermark-main { font-size: 3.5rem; filter: none; }
+      .c3-watermark-line-2 { background: none; -webkit-text-fill-color: #00ff88; color: #00ff88; }
+      .c3-grid { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; transform: none; width: 100vw; padding: 0 20px; gap: 16px; }
+      .c3-grid::-webkit-scrollbar { display: none; }
+      .c3-card { flex: 0 0 320px; scroll-snap-align: center; }
+      .c3-toggle-wrap { justify-content: center; padding-right: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <svg width="0" height="0" style="position:absolute;display:none">
+    <filter id="c3-noise">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" />
+      <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.35 0" />
+      <feComposite in2="SourceGraphic" operator="in" result="noise" />
+      <feBlend in="SourceGraphic" in2="noise" mode="multiply" />
+    </filter>
+    <filter id="c3-noise-pricing">
+      <feTurbulence type="fractalNoise" baseFrequency="0.5" numOctaves="2" stitchTiles="stitch" />
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.075" />
+      </feComponentTransfer>
+      <feComposite in2="SourceGraphic" operator="in" result="noise" />
+      <feBlend in="SourceGraphic" in2="noise" mode="overlay" />
+    </filter>
+  </svg>
+
+  <script type="text/babel">
+    const { createElement: h, useState, useEffect, useRef, Fragment } = React;
+    const { createRoot } = ReactDOM;
+
+    // Логотип Apple (только для строки меню)
+    const AppleLogo = ({ className = "w-4 h-4" }) =>
+      h('svg', { viewBox: "0 0 384 512", fill: "currentColor", className }, h('path', { d: "M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" }));
+    const LogoMark = ({ className = "w-8 h-8" }) =>
+      h('svg', { viewBox: "0 0 256 256", fill: "white", className }, h('path', { d: "M 0 128 C 70.692 128 128 185.308 128 256 L 64 256 C 64 220.654 35.346 192 0 192 Z M 256 192 C 220.654 192 192 220.654 192 256 L 128 256 C 128 185.308 185.308 128 256 128 Z M 128 0 C 128 70.692 70.692 128 0 128 L 0 64 C 35.346 64 64 35.346 64 0 Z M 192 0 C 192 35.346 220.654 64 256 64 L 256 128 C 185.308 128 128 70.692 128 0 Z" }));
+    const SearchIcon = (p) => h('svg',{...p,width:16,height:16,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2}, h('circle',{cx:11,cy:11,r:8}), h('line',{x1:21,y1:21,x2:16.65,y2:16.65}));
+    const SparklesIcon = (p) => h('svg',{...p,width:16,height:16,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2}, h('path',{d:"M12 3l2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3z"}), h('path',{d:"M18 8l1.5 3.5L23 13l-3.5 1.5L18 18l-1.5-3.5L13 13l3.5-1.5L18 8z"}), h('path',{d:"M8 18l1.5 3.5L13 23l-3.5 1.5L8 28l-1.5-3.5L3 23l3.5-1.5L8 18z"}));
+    const PaperclipIcon = (p) => h('svg',{...p,width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2}, h('path',{d:"M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"}));
+    const ReplyIcon = (p) => h('svg',{...p,width:16,height:16,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2}, h('polyline',{points:"9 17 4 12 9 7"}), h('path',{d:"M20 18v-2a4 4 0 0 0-4-4H4"}));
+    const ForwardIcon = (p) => h('svg',{...p,width:16,height:16,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2}, h('polyline',{points:"15 17 20 12 15 7"}), h('path',{d:"M4 18v-2a4 4 0 0 1 4-4h12"}));
+    const ArchiveIcon = (p) => h('svg',{...p,width:16,height:16,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2}, h('rect',{x:2,y:3,width:20,height:5,rx:1}), h('path',{d:"M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"}), h('path',{d:"M10 12h4"}));
+    const Trash2Icon = (p) => h('svg',{...p,width:16,height:16,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2}, h('polyline',{points:"3 6 5 6 21 6"}), h('path',{d:"M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"}), h('path',{d:"M10 11v6"}), h('path',{d:"M14 11v6"}), h('path',{d:"M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"}));
+    const MoreHorizontalIcon = (p) => h('svg',{...p,width:18,height:18,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2}, h('circle',{cx:12,cy:12,r:1}), h('circle',{cx:19,cy:12,r:1}), h('circle',{cx:5,cy:12,r:1}));
+    const ChevronRightIcon = (p) => h('svg',{...p,width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2}, h('polyline',{points:"9 18 15 12 9 6"}));
+    const MenuIcon = (p) => h('svg',{...p,width:20,height:20,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2}, h('line',{x1:4,y1:6,x2:20,y2:6}), h('line',{x1:4,y1:12,x2:20,y2:12}), h('line',{x1:4,y1:18,x2:20,y2:18}));
+
+    // Кнопка без логотипа Apple
+    const ActionButton = ({ label = "Войти в почту" }) =>
+      h('button', { className: 'group inline-flex items-center justify-center gap-2 rounded-full bg-white text-black font-medium text-sm px-5 py-3 hover:bg-white/90 active:scale-95 transition-transform' },
+        label, h(ChevronRightIcon, { className: 'group-hover:translate-x-0.5 transition-transform' })
+      );
+
+    const SectionEyebrow = ({ label, tag }) =>
+      h('div', { className: 'flex items-center gap-2 mb-4' },
+        h('span', { className: 'w-1.5 h-1.5 rounded-full bg-white' }),
+        h('span', { className: 'text-sm font-medium text-white/70' }, label),
+        tag && h('span', { className: 'px-2 py-0.5 rounded-full border border-white/10 text-white/50 text-xs' }, tag)
+      );
+
+    function useInView() {
+      const ref = useRef(null);
+      const [visible, setVisible] = useState(false);
+      useEffect(() => {
+        const observer = new IntersectionObserver(([entry]) => {
+          if (entry.isIntersecting) { setVisible(true); observer.disconnect(); }
+        }, { threshold: 0.1 });
+        if (ref.current) observer.observe(ref.current);
+        return () => observer.disconnect();
+      }, []);
+      return [ref, visible];
+    }
+
+    function App() {
+      const [yearly, setYearly] = useState(false);
+      const [menuOpen, setMenuOpen] = useState(false);
+      const [heroVisible, setHeroVisible] = useState(false);
+      const [navVisible, setNavVisible] = useState(false);
+      const [triageRef, triageVisible] = useInView();
+      const [ctaRef, ctaVisible] = useInView();
+
+      useEffect(() => {
+        setTimeout(() => setNavVisible(true), 100);
+        setTimeout(() => setHeroVisible(true), 300);
+      }, []);
+
+      const gradientStyle = {
+        backgroundImage: 'linear-gradient(to right, #091020 0%, #0B5125 12.5%, #A4F4C4 32.5%, #00ff88 50%, #0B5125 67.5%, #091020 87.5%, #091020 100%)',
+        backgroundSize: '200% auto',
+        WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', WebkitTextFillColor: 'transparent',
+        filter: 'url(#c3-noise)'
+      };
+
+      const plans = [
+        { tier: 'Free', priceMonthly: 'Бесплатно', priceYearly: 'Бесплатно', desc: 'Для начинающих свой путь с Froject.', features: ['До 3 проектов в облаке', 'Экспорт изображений до 1080p', 'Базовые инструменты редактирования', 'Бесплатные шаблоны и иконки', 'Доступ через веб и мобильное приложение'] },
+        { tier: 'Standard', priceMonthly: '₽599/мес', priceYearly: '₽5999/год', desc: 'Для фрилансеров и небольших команд, которым нужно больше свободы и гибкости.', features: ['До 50 проектов в облаке', 'Экспорт до 4K', 'Продвинутый набор инструментов', 'Совместная работа (до 5 участников)', 'Доступ к премиум-библиотеке шаблонов'] },
+        { tier: 'Pro', priceMonthly: '₽1299/мес', priceYearly: '₽12999/год', desc: 'Для студий, агентств и профессиональных создателей, работающих с брендами.', features: ['Неограниченные проекты', 'Экспорт до 8K + анимации', 'Инструменты генерации контента с ИИ', 'Неограниченное количество участников', 'Кастомизация бренда'], pro: true }
+      ];
+
+      return h('div', { className: 'relative min-h-screen overflow-x-hidden bg-[#0c0c0c] text-white' },
+        h('div', { className: 'fixed inset-0 z-0 pointer-events-none' },
+          h('video', { autoPlay: true, loop: true, muted: true, playsInline: true, className: 'w-full h-full object-cover', src: 'bg.mp4' })
+        ),
+        h('div', { className: 'hidden md:block pointer-events-none fixed inset-y-0 left-1/2 -translate-x-[calc(50%+36rem)] w-px bg-white/10 z-[5]' }),
+        h('div', { className: 'hidden md:block pointer-events-none fixed inset-y-0 left-1/2 translate-x-[calc(-50%+36rem)] w-px bg-white/10 z-[5]' }),
+
+        h('nav', { className: `max-w-6xl mx-auto px-6 py-5 flex items-center justify-between relative z-20 transition-all duration-700 ${navVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}` },
+          h(LogoMark, { className: 'w-8 h-8' }),
+          h('div', { className: 'hidden md:flex gap-8' },
+            ['Решения','Цены','Блог','Документация','Вакансии'].map((link, i) =>
+              h('a', { key: link, href: '#', className: 'text-white/70 text-sm font-medium hover:text-white transition-colors', style: { transitionDelay: `${i*0.05}s` } }, link)
+            )
+          ),
+          h('div', { className: 'hidden md:block' }, h(ActionButton, { label: "Войти в почту" })),
+          h('button', { className: 'md:hidden w-10 h-10 rounded-full border border-white/10 bg-white/5 flex items-center justify-center', onClick: () => setMenuOpen(!menuOpen) }, h(MenuIcon))
+        ),
+
+        h('section', { className: 'pt-16 md:pt-28 pb-20 text-center flex flex-col items-center relative z-10' },
+          h('h1', { className: `text-4xl md:text-7xl font-semibold tracking-tight leading-[0.9] transition-all duration-700 delay-100 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}` },
+            h('span', { className: 'text-white' }, 'Ваша почта.'), h('br'),
+            h('span', { className: 'animate-shiny', style: gradientStyle }, 'Просто работает')
+          ),
+          h('p', { className: `mt-8 text-white/60 max-w-md text-base leading-[1.5] transition-all duration-700 delay-300 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}` },
+            "Froject — это современная почтовая платформа, где ИИ берёт на себя организацию писем: сортирует, выделяет самое важное и помогает видеть всё ясно, без лишнего шума."
+          ),
+          h('div', { className: `mt-6 flex flex-col items-center gap-2 transition-all duration-700 delay-500 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}` },
+            h(ActionButton, { label: "Войти в почту" })
+          )
+        ),
+
+        h('div', { className: 'h-10 bg-black/40 backdrop-blur-md border-t border-b border-white/10 flex items-center justify-between px-6 max-w-6xl mx-auto text-xs mt-10' },
+          h('div', { className: 'flex items-center gap-3' },
+            h(AppleLogo, { className: 'w-3.5 h-3.5' }),
+            h('span', { className: 'font-bold text-white' }, 'Froject'),
+            ['Файл','Правка','Вид','Переход','Окно','Справка'].map((item, i) => h('span', { key: item, className: `text-white/60 ${i>2 ? 'hidden sm:inline' : ''} ${i>3 ? 'hidden md:inline' : ''}` }, item))
+          ),
+          h('div', { className: 'flex items-center gap-2' }, h(SearchIcon, { className: 'w-3.5 h-3.5' }), h('span', { className: 'text-white/60' }, 'Ср 6 мая 13:09'))
+        ),
+
+        h('div', { className: 'max-w-6xl mx-auto px-6 py-16 md:py-24' },
+          h('div', { className: 'relative rounded-2xl overflow-hidden border border-white/10 bg-[#0e1014]/90 backdrop-blur-2xl' },
+            h('div', { className: 'flex items-center gap-2 px-5 py-3 border-b border-white/10' },
+              h('div', { className: 'flex gap-2' }, h('span', { className: 'w-3 h-3 rounded-full bg-[#ff5f57]' }), h('span', { className: 'w-3 h-3 rounded-full bg-[#febc2e]' }), h('span', { className: 'w-3 h-3 rounded-full bg-[#28c840]' })),
+              h('span', { className: 'text-xs text-white/50 ml-4' }, 'Froject — Входящие')
+            ),
+            h('div', { className: 'grid grid-cols-12 h-[520px]' },
+              h('div', { className: 'col-span-3 border-r border-white/10 bg-black/30 p-4 flex flex-col gap-2' },
+                h('button', { className: 'flex items-center gap-2 rounded-lg bg-white text-black text-xs font-semibold px-3 py-2' }, h(SparklesIcon, { className: 'w-4 h-4' }), 'Написать с Froject'),
+                ['Входящие','Избранные','Отправленные','Черновики','Архив','Корзина'].map((item, idx) =>
+                  h('div', { key: item, className: `flex items-center justify-between px-2 py-1.5 rounded-md text-sm ${idx===0 ? 'bg-white/10 text-white' : 'text-white/60 hover:bg-white/5'}` }, h('span', null, item), idx===0 && h('span', { className: 'text-xs bg-white/20 rounded-full px-1.5' }, '12'), idx===1 && h('span', { className: 'text-xs' }, '3'), idx===3 && h('span', { className: 'text-xs' }, '2'))
+                ),
+                h('div', { className: 'mt-4' }, h('div', { className: 'text-xs text-white/40 uppercase tracking-wider mb-2' }, 'Метки'),
+                  [{ name: 'Работа', color: '#00ff88' }, { name: 'Личное', color: '#A4F4C4' }, { name: 'Путешествия', color: '#f59e0b' }, { name: 'Финансы', color: '#10b981' }].map(label =>
+                    h('div', { key: label.name, className: 'flex items-center gap-2 px-2 py-1 text-xs text-white/70' }, h('span', { className: 'w-2 h-2 rounded-full', style: { backgroundColor: label.color } }), label.name)
+                  )
+                )
+              ),
+              h('div', { className: 'col-span-4 border-r border-white/10 flex flex-col' },
+                h('div', { className: 'p-3 border-b border-white/10 flex items-center gap-2' }, h(SearchIcon, { className: 'w-4 h-4 text-white/40' }), h('input', { type: 'text', placeholder: 'Поиск писем', className: 'bg-transparent text-sm text-white/70 outline-none w-full' })),
+                h('div', { className: 'flex-1 overflow-y-auto' },
+                  [ { name: 'Linear', subject: 'Еженедельный дайджест продукта', preview: 'Ваша команда отправила 23 задачи на этой неделе...', time: '9:41', active: true, unread: true },
+                    { name: 'София Чен', subject: 'Re: Обзор дорожной карты Q3', preview: 'Спасибо, что прислали презентацию. У меня было несколько мыслей...', time: '8:12', active: false, unread: true },
+                    { name: 'Figma', subject: 'Маркус прокомментировал ваш файл', preview: 'Нравится новое направление на главном экране.', time: 'Вчера', active: false, unread: false },
+                    { name: 'Stripe', subject: 'Выплата $12,480.00 отправлена', preview: 'Ваша выплата уже в пути на ваш банковский счет...', time: 'Вчера', active: false, unread: false },
+                    { name: 'Vercel', subject: 'Развертывание готово для froject-web', preview: 'Предпросмотр доступен на froject-web-g3f.vercel.app', time: 'Пн', active: false, unread: false },
+                    { name: 'GitHub', subject: '[froject/core] PR #482 утвержден', preview: 'david-lim утвердил ваш pull request.', time: 'Пн', active: false, unread: false }
+                  ].map((msg, i) =>
+                    h('div', { key: i, className: `px-4 py-3 border-b border-white/5 ${msg.active ? 'bg-white/5' : ''} ${msg.unread ? 'border-l-2 border-l-green-400' : ''}` },
+                      h('div', { className: 'flex justify-between items-start' }, h('span', { className: 'text-sm font-medium text-white' }, msg.name), h('span', { className: 'text-xs text-white/40' }, msg.time)),
+                      h('div', { className: 'text-sm text-white/80 mt-0.5' }, msg.subject),
+                      h('div', { className: 'text-xs text-white/40 truncate mt-0.5' }, msg.preview)
+                    )
+                  )
+                )
+              ),
+              h('div', { className: 'col-span-5 p-5 flex flex-col' },
+                h('div', { className: 'flex items-center justify-between mb-4' },
+                  h('div', { className: 'flex gap-1' }, [ReplyIcon, ForwardIcon, ArchiveIcon, Trash2Icon].map((Icon, idx) => h('button', { key: idx, className: 'w-7 h-7 rounded-md hover:bg-white/5 flex items-center justify-center' }, h(Icon, { className: 'w-4 h-4 text-white/60' })))),
+                  h(MoreHorizontalIcon, { className: 'w-5 h-5 text-white/40 cursor-pointer' })
+                ),
+                h('div', { className: 'flex items-start gap-4 mb-5' },
+                  h('div', { className: 'w-7 h-7 rounded-full bg-gradient-to-br from-[#00ff88] to-[#0B5125] flex items-center justify-center text-xs font-bold' }, 'L'),
+                  h('div', null, h('div', { className: 'font-semibold text-white' }, 'Linear'), h('div', { className: 'text-xs text-white/50' }, 'мне · 9:41'), h('span', { className: 'inline-block px-2 py-0.5 rounded-full bg-white/10 text-xs text-white/70 mt-1' }, 'Работа'))
+                ),
+                h('div', { className: 'flex-1 overflow-y-auto space-y-4 text-sm' },
+                  h('div', { className: 'liquid-glass rounded-lg p-3 flex items-start gap-3' }, h(SparklesIcon, { className: 'w-5 h-5 text-[#A4F4C4] mt-0.5' }), h('div', null, h('div', { className: 'text-xs font-semibold text-white/80' }, 'Сводка от Froject'), h('p', { className: 'text-xs text-white/60 mt-1' }, 'Ваша команда закрыла 23 задачи, объединила 14 PR и выпустила 2 функции. Главный участник: Marcus. Никаких действий не требуется.'))),
+                  h('p', { className: 'text-white/50' }, 'Привет, команда,'),
+                  h('p', { className: 'text-white/50' }, 'Вот ваш еженедельный дайджест всего, что происходит в ваших проектах. Это была сильная неделя со значительным прогрессом по дорожной карте Q3.'),
+                  h('p', { className: 'text-white/50' }, 'Было закрыто двадцать три задачи, объединено четырнадцать pull request-ов, и две функции для клиентов были выпущены. Тренд скорости продолжает расти.'),
+                  h('p', { className: 'text-white/50' }, 'Дайте знать, если нужна более детальная разбивка по проекту или участнику.'),
+                  h('p', { className: 'text-white/50' }, '— Команда Linear'),
+                  h('div', { className: 'flex items-center gap-2 px-3 py-2 rounded-lg border border-white/10 w-fit' }, h(PaperclipIcon, { className: 'w-4 h-4 text-white/50' }), h('span', { className: 'text-xs text-white/60' }, 'digest-may-6.pdf'))
+                )
+              )
+            )
+          )
+        ),
+
+        h('section', { ref: triageRef, className: `max-w-6xl mx-auto px-6 py-20 md:py-28 grid md:grid-cols-2 gap-10 md:gap-16 items-start transition-all duration-700 ${triageVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}` },
+          h('div', null,
+            h(SectionEyebrow, { label: 'Сортировка', tag: 'ИИ-нативный' }),
+            h('h2', { className: 'mt-5 text-3xl md:text-5xl font-semibold tracking-tight leading-[1.02]' }, 'Очистите входящие', h('br'), 'за один проход.'),
+            h('p', { className: 'mt-6 text-white/60 text-base leading-[1.6] max-w-md' }, "Froject читает каждое сообщение, понимает намерения и направляет шум в сторону от сигнала. Сосредоточьтесь на том, что движет ваш день вперёд — остальное обрабатывается само."),
+            h('div', { className: 'flex flex-wrap gap-2 mt-6' }, ['Авто-категоризация', 'Отложить на потом', 'Тихие рассылки', 'Отписка в один клик'].map(chip => h('span', { key: chip, className: 'text-xs text-white/70 px-3 py-1.5 rounded-full border border-white/10 bg-white/[0.03]' }, chip)))
+          ),
+          h('div', { className: 'liquid-glass rounded-2xl p-5' },
+            h('div', { className: 'text-sm text-white/50 mb-4' }, 'Сегодня · 42 сообщения отсортировано'),
+            [ { label: 'Приоритет', count: 4, color: '#ffffff', items: ['София Чен — обзор Q3', 'Дэвид Лим — подписание контракта'] },
+              { label: 'На потом', count: 7, color: '#e5e5e5', items: ['Маркус — обзор дизайна', 'Figma — ветка комментариев'] },
+              { label: 'Обновления', count: 18, color: '#a3a3a3', items: ['Vercel — развертывание готово', 'GitHub — PR #482 объединен'] },
+              { label: 'Архив', count: 13, color: '#525252', items: ['Выплата Stripe · Рассылка · Квитанции'] }
+            ].map((group, idx) =>
+              h('div', { key: idx, className: 'liquid-glass rounded-lg p-3 mb-2' },
+                h('div', { className: 'flex items-center justify-between mb-1' }, h('span', { className: 'text-xs font-medium', style: { color: group.color } }, group.label), h('span', { className: 'text-xs text-white/40' }, group.count)),
+                group.items.map((item, i) => h('div', { key: i, className: 'text-xs text-white/70 ml-1' }, item))
+              )
+            )
+          )
+        ),
+
+        h('div', { className: 'max-w-6xl mx-auto px-6 py-20 md:py-32' },
+          h('div', { ref: ctaRef, className: `liquid-glass relative overflow-hidden rounded-3xl px-8 py-16 md:py-24 text-center transition-all duration-700 ${ctaVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}` },
+            h('div', { className: 'absolute inset-0 bg-gradient-to-b from-white/15 to-transparent opacity-30', style: { background: 'radial-gradient(600px circle at 50% 0%, rgba(255,255,255,0.15), transparent 70%)' } }),
+            h('h2', { className: 'relative text-4xl md:text-6xl font-semibold tracking-tight leading-[1.02]' }, 'Закройте вкладки.', h('br'), 'Откройте день.'),
+            h('p', { className: 'relative mt-6 text-white/60 max-w-md mx-auto text-sm leading-[1.6]' }, 'Присоединяйтесь к тысячам разработчиков, основателей и операторов, которые относятся к почте как к инструменту, а не обязанности.'),
+            h('div', { className: 'relative flex flex-col sm:flex-row items-center justify-center gap-3 mt-8' },
+              h(ActionButton, { label: "Войти в почту" }),
+              h('button', { className: 'rounded-full border border-white/15 text-white text-sm font-medium px-5 py-3 hover:bg-white/5 transition-colors flex items-center gap-2' }, 'Перейти на трекер', h(ChevronRightIcon))
+            )
+          )
+        )
+      );
+    }
+
+    const root = createRoot(document.getElementById('root'));
+    root.render(h(App));
+  </script>
+</body>
+</html>
